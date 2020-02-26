@@ -1,6 +1,6 @@
 <<<<<<< HEAD
 
-# Hong Kong gourmet circle
+# Hong Kong Gourmet Circle
 
 ## Introduction
 
@@ -14,11 +14,11 @@ When the user fellow the chat bot channel, the chat bot will automatically reply
 
 
 
-## Specific queries logic
+## Specific types of query
 
-**①Step 1:**
+**Type 1:**
 
-+ Input: food types
++ Input: food type
   + (For example: *<u>Thailand Food/Thailand</u>* ) 
   + Input data type: text
 
@@ -26,7 +26,7 @@ When the user fellow the chat bot channel, the chat bot will automatically reply
   + Output data type: text 
 + Objective: make user know more about the name and the location of restaurants corresponding the type he search.
 
-**②Step 2:**
+**Type 2:**
 
 + Input:restaurant name 
   + Input data type:  text
@@ -37,7 +37,7 @@ When the user fellow the chat bot channel, the chat bot will automatically reply
   + Output data type:text
 + Objective: make user know more about the menu and popular dishes corresponding the restaurant he search.
 
-**③Step 3:**
+**Type 3:**
 
 + Input: restaurant name + food name 
   + (For example: <u>*TAI WAI Roast Duck Restaurant + Roast Duck*</u>)
@@ -45,9 +45,9 @@ When the user fellow the chat bot channel, the chat bot will automatically reply
 
 + output: food photo
   + Output data type:image
-+ Objective: make user obtain the photography corresponding the dish in the certain restaurant he search.
++ Objective: make user obtain the photograph corresponding the dish in the certain restaurant he search.
 
-**④Step 4:**
+**Type 4:**
 
 + Input: restaurant name + environmental + type
   + (For example：<u>*Roast Duck Restaurant+environmental+image/video*</u>)
