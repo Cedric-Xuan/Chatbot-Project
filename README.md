@@ -1,5 +1,3 @@
-"# Chatbot-Project" 
-
 # Student Info
 
 XUAN Yongzhe	19409370
