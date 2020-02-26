@@ -21,7 +21,7 @@ When the user fellow the chat bot channel, the chat bot will automatically reply
   + Input data type: text
 
 + Output: restaurant name list and restaurant address list
-  + Output data type: text and address with hyperlink of the map of the corresponding restaurant
+  + Output data type: text
 + Objective: make user know more about the name and the location of restaurants corresponding the type he search.
 
 **②Step 2:**
