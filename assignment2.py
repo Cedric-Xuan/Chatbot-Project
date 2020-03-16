@@ -19,6 +19,10 @@ from linebot.models import (
 )
 from linebot.utils import PY3
 
+HOST = "redis-18235.c228.us-central1-1.gce.cloud.redislabs.com"
+PWD = "w2vwWBPYLIgggR0kiQzkMX7CXN4L1KjC"
+PORT = "18235"
+
 app = Flask(__name__)
 
 # get channel_secret and channel_access_token from your environment variable
