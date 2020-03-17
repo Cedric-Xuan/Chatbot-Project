@@ -15,9 +15,24 @@ from linebot.exceptions import (
 )
 
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage, ImageMessage, VideoMessage, FileMessage, StickerMessage, StickerSendMessage
+    MessageEvent, TextMessage, TextSendMessage, ImageMessage, VideoMessage, FileMessage, StickerMessage,
+    StickerSendMessage
 )
 from linebot.utils import PY3
+
+import json
+
+_STYLE = 1
+_RESTAURANT = 2
+_FOOD = 3
+_ENVIRONMENT = 4
+
+# redis parameters
+HOST = "redis-18235.c228.us-central1-1.gce.cloud.redislabs.com"
+PWD = "w2vwWBPYLIgggR0kiQzkMX7CXN4L1KjC"
+PORT = "18235"
+
+redis1 = redis.Redis(host=HOST, password=PWD, port=PORT, decode_responses=True)
 
 app = Flask(__name__)
 
@@ -75,14 +90,97 @@ def callback():
 
     return 'OK'
 
+
 # Handler function for Text Message
 def handle_TextMessage(event):
-    print(event.message.text)
-    msg = 'You said: "' + event.message.text + '" '
+    # print(event.message.text)
+
+    text = event.message.text.lower()
+    print(text)
+
+    label = classify_TextMessage(text)
+
+    if label == _STYLE:
+        msg = 'Sorry, Not Found.'
+        query = 'style_restaurant_list'
+        style_name = extract_style_data(text)
+        result_json_str = redis1.get(query)
+
+        if (result_json_str is not None) and (style_name in result_json_str):
+            result_json = json.loads(result_json_str)
+
+            result = 'Style:' + style_name + '\n'
+
+            if result_json[style_name] is not None:
+                if len(result_json[style_name]) > 0:
+
+                    for restaurant in result_json[style_name]:
+                        result += restaurant['restaurant'] + '\tTel:' + restaurant['tel'] + '\n' + 'Address:' + restaurant[
+                            'address'] + '\n'
+
+                    msg = result
+
+
+    elif label == _RESTAURANT:
+        msg = 'Sorry, Not Found.'
+        query = 'restaurant_' + extract_restaurant_data(text)
+        result_json_str = redis1.get(query)
+
+        if result_json_str is not None:
+            result_json = json.loads(result_json_str)
+
+            popular_list = result_json['popular_menu']
+
+            if len(popular_list) > 0:
+
+                result = 'Restaurant:' + result_json['restaurant'] + '\n' + 'Popular Dishes:\n'
+
+                for dish in popular_list:
+                    result += '\t' + dish['dish'] + '\t $' + str(dish['price']) + '\n'
+
+                msg = result
+
+    elif label == _FOOD:
+        msg = 'Sorry, Not Found.'
+        img_url = ''
+        dish_name = ''
+        restaurant, food = extract_restaurant_food_data(text)
+        query = 'restaurant_' + restaurant
+        print('query:' + query)
+        json_string = redis1.get(query)
+        if json_string is not None:
+            json_object = json.loads(json_string)
+            popular_menu_list = json_object['popular_menu']
+            if len(popular_menu_list) > 0:
+                for dish in popular_menu_list:
+                    if dish['dish'] == food:
+                        print('Found dish:' + dish['dish'])
+                        img_url = dish['img_url']
+                        dish_name = dish['dish']
+                        break
+
+        if dish_name != '' and img_url != '':
+            msg = 'Restaurant:' + restaurant + '\n' + 'Dish:' + dish_name + '\n' + img_url
+
+    elif label == _ENVIRONMENT:
+        msg = 'Sorry, Not Found.'
+        img_url = ''
+        restaurant = extract_restaurant_environment(text)
+        query = 'restaurant_' + restaurant
+        print('query:' + query)
+        json_string = redis1.get(query)
+        if json_string is not None:
+            json_object = json.loads(json_string)
+            img_url = json_object['environment']
+
+            if img_url != '':
+                msg = 'Restaurant:' + restaurant + '\n' + 'Environment Picture:' + img_url
+
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(msg)
     )
+
 
 # Handler function for Sticker Message
 def handle_StickerMessage(event):
@@ -93,26 +191,75 @@ def handle_StickerMessage(event):
             sticker_id=event.message.sticker_id)
     )
 
+
 # Handler function for Image Message
 def handle_ImageMessage(event):
     line_bot_api.reply_message(
-	event.reply_token,
-	TextSendMessage(text="Nice image!")
+        event.reply_token,
+        TextSendMessage(text="Nice image!")
     )
+
 
 # Handler function for Video Message
 def handle_VideoMessage(event):
     line_bot_api.reply_message(
-	event.reply_token,
-	TextSendMessage(text="Nice video!")
+        event.reply_token,
+        TextSendMessage(text="Nice video!")
     )
+
 
 # Handler function for File Message
 def handle_FileMessage(event):
     line_bot_api.reply_message(
-	event.reply_token,
-	TextSendMessage(text="Nice file!")
+        event.reply_token,
+        TextSendMessage(text="Nice file!")
     )
+
+
+def classify_TextMessage(text):
+    text = str(text)
+    if 'style' in text:
+        return _STYLE
+    elif ('food' in text) and ('restaurant' in text):
+        return _FOOD
+    elif 'restaurant' in text and 'environment' not in text:
+        return _RESTAURANT
+    elif ('environment' in text) and ('restaurant' in text):
+        return _ENVIRONMENT
+
+
+def extract_style_data(text):
+    key = 'style'
+    return text[text.index(key) + 5:].strip()
+
+
+def extract_restaurant_data(text):
+    key = 'restaurant'
+    return text[text.index(key) + 10:].strip()
+
+
+def extract_restaurant_food_data(text):
+    key1 = 'restaurant'
+    key2 = 'food'
+
+    result1 = text[text.index(key1) + 10:]
+    result_list = result1.split(key2)
+    result1 = result_list[0].strip()
+    result2 = result_list[1].strip()
+
+    return result1, result2
+
+
+def extract_restaurant_environment(text):
+    key1 = 'restaurant'
+    key2 = 'environment'
+
+    result1 = text[text.index(key1) + 10:]
+    result_list = result1.split(key2)
+    result1 = result_list[0].strip()
+
+    return result1
+
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser(
