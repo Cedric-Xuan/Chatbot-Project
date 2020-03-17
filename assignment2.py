@@ -11,13 +11,13 @@ from linebot import (
     LineBotApi, WebhookParser
 )
 from linebot.exceptions import (
-    InvalidSignatureError
-)
+    InvalidSignatureError,
+    LineBotApiError)
 
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, ImageMessage, VideoMessage, FileMessage, StickerMessage,
-    StickerSendMessage
-)
+    StickerSendMessage,
+    ImageSendMessage)
 from linebot.utils import PY3
 
 import json
@@ -109,17 +109,19 @@ def handle_TextMessage(event):
         if (result_json_str is not None) and (style_name in result_json_str):
             result_json = json.loads(result_json_str)
 
-            result = 'Style:' + style_name + '\n'
+            result = 'Style:' + style_name + '\n\n'
 
             if result_json[style_name] is not None:
                 if len(result_json[style_name]) > 0:
 
                     for restaurant in result_json[style_name]:
-                        result += restaurant['restaurant'] + '\tTel:' + restaurant['tel'] + '\n' + 'Address:' + restaurant[
-                            'address'] + '\n'
+                        result += restaurant['restaurant'] + '\tTel:' + restaurant['tel'] + '\n' + 'Address:' + \
+                                  restaurant[
+                                      'address'] + '\n\n'
 
                     msg = result
 
+        send_text_message(event, msg)
 
     elif label == _RESTAURANT:
         msg = 'Sorry, Not Found.'
@@ -133,12 +135,14 @@ def handle_TextMessage(event):
 
             if len(popular_list) > 0:
 
-                result = 'Restaurant:' + result_json['restaurant'] + '\n' + 'Popular Dishes:\n'
+                result = 'Restaurant:' + result_json['restaurant'] + '\n\n' + 'Popular Dishes:\n'
 
                 for dish in popular_list:
                     result += '\t' + dish['dish'] + '\t $' + str(dish['price']) + '\n'
 
                 msg = result
+
+        send_text_message(event, msg)
 
     elif label == _FOOD:
         msg = 'Sorry, Not Found.'
@@ -160,7 +164,14 @@ def handle_TextMessage(event):
                         break
 
         if dish_name != '' and img_url != '':
-            msg = 'Restaurant:' + restaurant + '\n' + 'Dish:' + dish_name + '\n' + img_url
+            msg = 'Restaurant:' + restaurant + '\n\n' + 'Dish:' + dish_name
+            send_text_message(event, msg)
+            send_image_message(event, img_url, img_url)
+        elif dish_name != '' and img_url == '':
+            msg = 'Restaurant:' + restaurant + '\n\n' + 'Dish:' + dish_name + '\nSorry, there no image about the dish.'
+            send_text_message(event, msg)
+        else:
+            send_text_message(event, msg)
 
     elif label == _ENVIRONMENT:
         msg = 'Sorry, Not Found.'
@@ -173,13 +184,20 @@ def handle_TextMessage(event):
             json_object = json.loads(json_string)
             img_url = json_object['environment']
 
-            if img_url != '':
-                msg = 'Restaurant:' + restaurant + '\n' + 'Environment Picture:' + img_url
+        if img_url != '':
+            msg = 'Restaurant:' + restaurant
+            send_text_message(event, msg)
+            send_image_message(event, img_url, img_url)
+        elif json_string is not None and img_url == '':
+            msg = 'Restaurant:' + restaurant + '\nSorry, here no image about the restaurant.'
+            send_text_message(event, msg)
+        else:
+            send_text_message(event, msg)
 
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(msg)
-    )
+    # line_bot_api.reply_message(
+    #     event.reply_token,
+    #     TextSendMessage(msg)
+    # )
 
 
 # Handler function for Sticker Message
@@ -259,6 +277,31 @@ def extract_restaurant_environment(text):
     result1 = result_list[0].strip()
 
     return result1
+
+
+def send_text_message(event, msg_text):
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(msg_text)
+    )
+
+
+def send_image_message(event, msg_img_url, msg_preview_img_url):
+    print('img:', type(msg_img_url))
+    print('pre_img:', msg_img_url)
+    print('user', event.source)
+    print('reply_token', event.reply_token)
+
+    user = json.loads(str(event.source))
+    print(user['userId'])
+
+    try:
+        line_bot_api.push_message(
+            user['userId'],
+            ImageSendMessage(original_content_url = msg_img_url, preview_image_url = msg_preview_img_url)
+        )
+    except LineBotApiError as e:
+        raise e
 
 
 if __name__ == "__main__":
