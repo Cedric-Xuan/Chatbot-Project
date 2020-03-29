@@ -35,7 +35,7 @@ _ENVIRONMENT = 4
 #
 # redis1 = redis.Redis(host=HOST, password=PWD, port=PORT, decode_responses=True)
 
-# mogodb
+# mongodb
 client = pymongo.MongoClient("mongodb://115.220.10.112:27017/")
 db = client["admin"]  # admin - database name
 db.authenticate('myUserAdmin', 'abc123')
