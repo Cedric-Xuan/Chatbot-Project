@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import redis
+import pymongo
 
 from argparse import ArgumentParser
 
@@ -28,11 +29,19 @@ _FOOD = 3
 _ENVIRONMENT = 4
 
 # redis parameters
-HOST = "redis-18235.c228.us-central1-1.gce.cloud.redislabs.com"
-PWD = "w2vwWBPYLIgggR0kiQzkMX7CXN4L1KjC"
-PORT = "18235"
+# HOST = "redis-18235.c228.us-central1-1.gce.cloud.redislabs.com"
+# PWD = "w2vwWBPYLIgggR0kiQzkMX7CXN4L1KjC"
+# PORT = "18235"
+#
+# redis1 = redis.Redis(host=HOST, password=PWD, port=PORT, decode_responses=True)
 
-redis1 = redis.Redis(host=HOST, password=PWD, port=PORT, decode_responses=True)
+# mogodb
+client = pymongo.MongoClient("mongodb://115.220.10.112:27017/")
+db = client["admin"]  # admin - database name
+db.authenticate('myUserAdmin', 'abc123')
+
+table = client.admin
+post = table.restaurant_list
 
 app = Flask(__name__)
 
@@ -102,40 +111,36 @@ def handle_TextMessage(event):
 
     if label == _STYLE:
         msg = 'Sorry, Not Found.'
-        query = 'style_restaurant_list'
         style_name = extract_style_data(text)
-        result_json_str = redis1.get(query)
+        query = {'style': style_name}
+        print('query:' + str(query))
+        result_json = post.find(query)
 
-        if (result_json_str is not None) and (style_name in result_json_str):
-            result_json = json.loads(result_json_str)
+        if result_json is not None:
+            # result_json = json.loads(result_json_str)
 
             result = 'Style:' + style_name + '\n\n'
 
-            if result_json[style_name] is not None:
-                if len(result_json[style_name]) > 0:
+            for restaurant in result_json:
+                result += restaurant['restaurant'] + '\tTel:' + restaurant['tel'] + '\n' + 'Address:' + restaurant['address'] + '\n\n'
 
-                    for restaurant in result_json[style_name]:
-                        result += restaurant['restaurant'] + '\tTel:' + restaurant['tel'] + '\n' + 'Address:' + \
-                                  restaurant[
-                                      'address'] + '\n\n'
-
-                    msg = result
+            msg = result
 
         send_text_message(event, msg)
 
     elif label == _RESTAURANT:
         msg = 'Sorry, Not Found.'
-        query = 'restaurant_' + extract_restaurant_data(text)
-        result_json_str = redis1.get(query)
+        query = {'restaurant' : extract_restaurant_data(text)}
+        print('query:' + str(query))
+        result_json = post.find_one(query)
 
-        if result_json_str is not None:
-            result_json = json.loads(result_json_str)
+        if result_json is not None:
 
             popular_list = result_json['popular_menu']
 
             if len(popular_list) > 0:
 
-                result = 'Restaurant:' + result_json['restaurant'] + '\n\n' + 'Popular Dishes:\n'
+                result = 'Restaurant:' + result_json['restaurant'] + '\n\n' + 'Tel:' + result_json['tel'] + '\nAddress:' + result_json['address'] + '\nPopular Dishes:\n'
 
                 for dish in popular_list:
                     result += '\t' + dish['dish'] + '\t $' + str(dish['price']) + '\n'
@@ -149,12 +154,11 @@ def handle_TextMessage(event):
         img_url = ''
         dish_name = ''
         restaurant, food = extract_restaurant_food_data(text)
-        query = 'restaurant_' + restaurant
-        print('query:' + query)
-        json_string = redis1.get(query)
-        if json_string is not None:
-            json_object = json.loads(json_string)
-            popular_menu_list = json_object['popular_menu']
+        query = {'restaurant' : restaurant}
+        print('query:' + str(query))
+        json = post.find_one(query)
+        if json is not None:
+            popular_menu_list = json['popular_menu']
             if len(popular_menu_list) > 0:
                 for dish in popular_menu_list:
                     if dish['dish'] == food:
@@ -177,18 +181,17 @@ def handle_TextMessage(event):
         msg = 'Sorry, Not Found.'
         img_url = ''
         restaurant = extract_restaurant_environment(text)
-        query = 'restaurant_' + restaurant
-        print('query:' + query)
-        json_string = redis1.get(query)
-        if json_string is not None:
-            json_object = json.loads(json_string)
-            img_url = json_object['environment']
+        query = {'restaurant' : restaurant}
+        print('query:' + str(query))
+        json = post.find_one(query)
+        if json is not None:
+            img_url = json['environment']
 
         if img_url != '':
             msg = 'Restaurant:' + restaurant
             send_text_message(event, msg)
             send_image_message(event, img_url, img_url)
-        elif json_string is not None and img_url == '':
+        elif json is not None and img_url == '':
             msg = 'Restaurant:' + restaurant + '\nSorry, here no image about the restaurant.'
             send_text_message(event, msg)
         else:
@@ -298,7 +301,7 @@ def send_image_message(event, msg_img_url, msg_preview_img_url):
     try:
         line_bot_api.push_message(
             user['userId'],
-            ImageSendMessage(original_content_url = msg_img_url, preview_image_url = msg_preview_img_url)
+            ImageSendMessage(original_content_url=msg_img_url, preview_image_url=msg_preview_img_url)
         )
     except LineBotApiError as e:
         raise e
