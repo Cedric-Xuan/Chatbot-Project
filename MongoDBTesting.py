@@ -8,6 +8,10 @@ mydb.authenticate('myUserAdmin','abc123')
 
 tdb = myclient.admin
 post = tdb.test
-print("操作ing")
+print("执行插入操作ing")
 post.insert({'name':"李白", "age":"30", "skill":"Python"})
-print("操作完成")
+print("插入操作完成")
+
+print("执行查询操作ing")
+result = post.find_one({'name': '李白'})
+print(result)
