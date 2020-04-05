@@ -18,7 +18,7 @@ from linebot.exceptions import (
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, ImageMessage, VideoMessage, FileMessage, StickerMessage,
     StickerSendMessage,
-    ImageSendMessage)
+    ImageSendMessage, LocationSendMessage, VideoSendMessage)
 from linebot.utils import PY3
 
 import json
@@ -122,7 +122,8 @@ def handle_TextMessage(event):
             result = 'Style:' + style_name + '\n\n'
 
             for restaurant in result_json:
-                result += restaurant['restaurant'] + '\tTel:' + restaurant['tel'] + '\n' + 'Address:' + restaurant['address'] + '\n\n'
+                result += restaurant['restaurant'] + '\tTel:' + restaurant['tel'] + '\n' + 'Address:' + restaurant[
+                    'address'] + '\n\n'
 
             msg = result
 
@@ -130,17 +131,28 @@ def handle_TextMessage(event):
 
     elif label == _RESTAURANT:
         msg = 'Sorry, Not Found.'
-        query = {'restaurant' : extract_restaurant_data(text)}
+        address = ''
+        latitude = ''
+        longitude = ''
+        title = ''
+        query = {'restaurant': extract_restaurant_data(text)}
         print('query:' + str(query))
         result_json = post.find_one(query)
 
         if result_json is not None:
 
+            title = result_json['restaurant']
+            if ('address' in result_json) and ('latitude' in result_json) and ('longitude' in result_json):
+                address = result_json['address']
+                latitude = result_json['latitude']
+                longitude = result_json['longitude']
+
             popular_list = result_json['popular_menu']
 
             if len(popular_list) > 0:
 
-                result = 'Restaurant:' + result_json['restaurant'] + '\n\n' + 'Tel:' + result_json['tel'] + '\nAddress:' + result_json['address'] + '\nPopular Dishes:\n'
+                result = 'Restaurant:' + result_json['restaurant'] + '\n\n' + 'Tel:' + result_json[
+                    'tel'] + '\nAddress:' + result_json['address'] + '\nPopular Dishes:\n'
 
                 for dish in popular_list:
                     result += '\t' + dish['dish'] + '\t $' + str(dish['price']) + '\n'
@@ -148,13 +160,15 @@ def handle_TextMessage(event):
                 msg = result
 
         send_text_message(event, msg)
+        if title != '' and address != '' and latitude != '' and longitude != '':
+            send_location_message(event, title, address, latitude, longitude)
 
     elif label == _FOOD:
         msg = 'Sorry, Not Found.'
         img_url = ''
         dish_name = ''
         restaurant, food = extract_restaurant_food_data(text)
-        query = {'restaurant' : restaurant}
+        query = {'restaurant': restaurant}
         print('query:' + str(query))
         json = post.find_one(query)
         if json is not None:
@@ -180,22 +194,34 @@ def handle_TextMessage(event):
     elif label == _ENVIRONMENT:
         msg = 'Sorry, Not Found.'
         img_url = ''
+        video_url = ''
+        video_img = ''
         restaurant = extract_restaurant_environment(text)
-        query = {'restaurant' : restaurant}
+        query = {'restaurant': restaurant}
         print('query:' + str(query))
         json = post.find_one(query)
         if json is not None:
-            img_url = json['environment']
+            if 'environment' in json:
+                img_url = json['environment']
+
+            if ('video' in json) and ('video_img' in json):
+                video_img = json['video_img']
+                video_url = json['video']
 
         if img_url != '':
             msg = 'Restaurant:' + restaurant
             send_text_message(event, msg)
             send_image_message(event, img_url, img_url)
-        elif json is not None and img_url == '':
+
+        else:
             msg = 'Restaurant:' + restaurant + '\nSorry, here no image about the restaurant.'
             send_text_message(event, msg)
-        else:
-            send_text_message(event, msg)
+
+        if video_url != '' and video_img != '':
+            send_video_message(event, video_img, video_url)
+
+        if (img_url == '') and (video_url == '') and (video_img == ''):
+            send_text_message(event, 'Sorry, Not Found.')
 
     # line_bot_api.reply_message(
     #     event.reply_token,
@@ -302,6 +328,38 @@ def send_image_message(event, msg_img_url, msg_preview_img_url):
         line_bot_api.push_message(
             user['userId'],
             ImageSendMessage(original_content_url=msg_img_url, preview_image_url=msg_preview_img_url)
+        )
+    except LineBotApiError as e:
+        raise e
+
+
+def send_location_message(event, msg_title, msg_address, msg_latitude, msg_longitude):
+    print('latitude', msg_latitude)
+    print('longitude', msg_longitude)
+
+    user = json.loads(str(event.source))
+    print(user['userId'])
+
+    try:
+        line_bot_api.push_message(
+            user['userId'],
+            LocationSendMessage(title=msg_title, address=msg_address, latitude=msg_latitude, longitude=msg_longitude)
+        )
+    except LineBotApiError as e:
+        raise e
+
+
+def send_video_message(event, msg_video_img_url, msg_video_url):
+    print('video_img_url', msg_video_img_url)
+    print('video_url', msg_video_url)
+
+    user = json.loads(str(event.source))
+    print(user['userId'])
+
+    try:
+        line_bot_api.push_message(
+            user['userId'],
+            VideoSendMessage(original_content_url=msg_video_url, preview_image_url=msg_video_img_url)
         )
     except LineBotApiError as e:
         raise e
