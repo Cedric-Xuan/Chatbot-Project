@@ -26,6 +26,8 @@ from linebot.models import (
 from linebot.utils import PY3
 
 import json as Json
+import requests
+import random
 
 _ALL_STYLE = 0
 _STYLE = 1
@@ -36,6 +38,7 @@ _ENVIRONMENT = 5
 _POPULAR = 6
 _LOCATION = 7
 _CALL_US = 8
+_NEARBY = 9
 
 # redis parameters
 HOST = "redis-18235.c228.us-central1-1.gce.cloud.redislabs.com"
@@ -356,6 +359,16 @@ def handle_TextMessage(event):
     elif label == _CALL_US:
         send_call_us_button_message(event)
 
+    elif label == _NEARBY:
+        nearby = extract_nearby_data(text)
+        restaurant_list, image_list, map_url_lit = get_3_restaurants_nearby(nearby)
+        send_nearby_restaurant_list_message(event, restaurant_list, image_list, map_url_lit)
+
+        user = Json.loads(str(event.source))
+        uid = user['userId']
+        redis1.incr('nearby')
+        redis1.incr('nearby-' + uid)
+
     # line_bot_api.reply_message(
     #     event.reply_token,
     #     TextSendMessage(msg)
@@ -424,6 +437,8 @@ def classify_TextMessage(text):
         return _LOCATION
     elif 'call admin' in text:
         return _CALL_US
+    elif 'nearby' in text:
+        return _NEARBY
 
 
 def extract_style_data(text):
@@ -473,6 +488,81 @@ def extract_restaurant_environment(text):
 def extract_location_data(text):
     key = 'location'
     return text[text.index(key) + 8:].strip()
+
+
+def extract_nearby_data(text):
+    key = 'nearby'
+    return text[text.index(key) + 6:].strip()
+
+
+def get_3_restaurants_nearby(nearby):
+    GOOGLE_API_KEY = 'AIzaSyAH5qFJ9JfgCdblC-6Y282wFMxCXA6TeHM'  # due to confidentiality, it will not be published on GitHub
+
+
+    addurl = 'https://maps.googleapis.com/maps/api/geocode/json?key={}&address={}&sensor=false'.format(GOOGLE_API_KEY, nearby)
+
+    # get current location
+    addressReq = requests.get(addurl)
+    addressDoc = addressReq.json()
+    lat = addressDoc['results'][0]['geometry']['location']['lat']
+    lng = addressDoc['results'][0]['geometry']['location']['lng']
+
+    # get pharmacies around this location
+    restaurantSearch = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?key={}&location={},{}&rankby=distance&type=restaurant&language=en-US'.format(GOOGLE_API_KEY, lat, lng)
+    restaurantReq = requests.get(restaurantSearch)
+    nearby_restaurant_dict = restaurantReq.json()
+
+    # put the searching result into top20_restaurant as a list
+    top20_restaurant = nearby_restaurant_dict['results']
+    res_num = (len(top20_restaurant))
+
+    # get the restaurant whose rating is beyond 4
+    bravo = []
+    for i in range(res_num):
+        try:
+            if top20_restaurant[i]['rating'] > 4:
+                print('rating', top20_restaurant[i]['rating'])
+                bravo.append(i)
+        except:
+            KeyError
+    # if all restaurants' rating are lower than 4, randomly choose three
+    restaurant_list = []
+    thumbnail_image_url_list = []
+    map_url_list = []
+
+    if len(bravo) < 3:
+        content = 'there is no restaurant around'
+        restaurant_list = (random.sample(top20_restaurant, 3))
+        # or choose from bravo list
+    else:
+        index_list = random.sample(bravo, 3)
+        for index in index_list:
+            restaurant_list.append(top20_restaurant[index])
+
+        # check the photo of this restaurant
+
+    for i in range(len(restaurant_list)):
+        if restaurant_list[i].get('photos') is None:
+            thumbnail_image_url_list.append('https://lh3.googleusercontent.com/proxy/picnJy4RcLmy7gLgcbPscFTw8HHcou5wiPFk-dxHTH8-XNse7PEH2nNrUQXkzMbSPeFhdfi2j5G3uGILpJPTqriYuS2cyPDjWGUST9zLwTbrlrswoBxwuGe8AaVZx7JV-vBoZsque3I5')
+        else:
+            # if has photos, choose 3
+            photo_reference = restaurant_list[i]['photos'][0]['photo_reference']
+            photo_width = restaurant_list[i]['photos'][0]['width']
+            thumbnail_image_url_list.append(
+                'https://maps.googleapis.com/maps/api/place/photo?key={}&photoreference={}&maxwidth={}'.format(
+                    GOOGLE_API_KEY, photo_reference, photo_width))
+
+        restaurant_list[i]['rating']='no rating' if restaurant_list[i].get('rating') is None else restaurant_list[i]['rating']
+        restaurant_list[i]['vicinity'] = 'No info' if restaurant_list[i].get('vicinity') is None else restaurant_list[i]['vicinity']
+
+        # the url of current map
+        lat = str(restaurant_list[i]['geometry']['location']['lat'])
+        long = str(restaurant_list[i]["geometry"]['location']['lng'])
+        place_id = str(restaurant_list[i]['place_id'])
+
+        map_url_list.append("http://www.google.com/maps/search/?api=1&query="+lat+","+long+"&query_place_id="+place_id)
+
+    return restaurant_list, thumbnail_image_url_list, map_url_list
 
 
 def send_text_message(text):
@@ -685,6 +775,45 @@ def send_call_us_button_message(event):
         )
     except LineBotApiError as e:
         raise e
+
+
+def send_nearby_restaurant_list_message(event, restaurant_list, image_list, map_url_list):
+    user = Json.loads(str(event.source))
+    uid = user['userId']
+    print('userId')
+    print(uid)
+
+    items = []
+
+    for i in range(len(restaurant_list)):
+        title = restaurant_list[i]['name'][:37]+'...' if len(restaurant_list[i]['name'])>39 else restaurant_list[i]['name']
+        vicinity = restaurant_list[i]['vicinity'][:27]+'...' if len(restaurant_list[i]['vicinity'])>30 else restaurant_list[i]['vicinity']
+        print(title)
+        print(vicinity)
+        items.append(
+
+            CarouselColumn(thumbnail_image_url=image_list[i], title= title,
+                           text='Rating:'+str(restaurant_list[i]['rating'])+'\nAddress:'+ vicinity ,
+                           actions=[URIAction(label='Navigation', uri= map_url_list[i])])
+        )
+
+
+    message = TemplateSendMessage(
+
+        alt_text='Recommend List',
+        template=CarouselTemplate(
+            columns=items
+        ))
+
+    try:
+        line_bot_api.push_message(
+            uid,
+            message
+        )
+    except LineBotApiError as e:
+        raise e
+
+
 
 
 if __name__ == "__main__":
