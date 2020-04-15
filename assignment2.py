@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 import os
 import sys
+from datetime import datetime
+
 import redis
 import pymongo
 
@@ -18,22 +20,29 @@ from linebot.exceptions import (
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, ImageMessage, VideoMessage, FileMessage, StickerMessage,
     StickerSendMessage,
-    ImageSendMessage, LocationSendMessage, VideoSendMessage)
+    ImageSendMessage, LocationSendMessage, VideoSendMessage, QuickReply, TemplateSendMessage,
+    PostbackAction, MessageAction, URIAction, ButtonsTemplate, URIImagemapAction, LocationAction, QuickReplyButton,
+    RichMenuBounds, RichMenuArea, RichMenuSize, RichMenu, CarouselTemplate, CarouselColumn, ConfirmTemplate)
 from linebot.utils import PY3
 
-import json
+import json as Json
 
+_ALL_STYLE = 0
 _STYLE = 1
-_RESTAURANT = 2
-_FOOD = 3
-_ENVIRONMENT = 4
+_STYLE_IN_LIST = 2
+_RESTAURANT = 3
+_FOOD = 4
+_ENVIRONMENT = 5
+_POPULAR = 6
+_LOCATION = 7
+_CALL_US = 8
 
 # redis parameters
-# HOST = "redis-18235.c228.us-central1-1.gce.cloud.redislabs.com"
-# PWD = "w2vwWBPYLIgggR0kiQzkMX7CXN4L1KjC"
-# PORT = "18235"
-#
-# redis1 = redis.Redis(host=HOST, password=PWD, port=PORT, decode_responses=True)
+HOST = "redis-18235.c228.us-central1-1.gce.cloud.redislabs.com"
+PWD = "w2vwWBPYLIgggR0kiQzkMX7CXN4L1KjC"
+PORT = "18235"
+
+redis1 = redis.Redis(host=HOST, password=PWD, port=PORT, decode_responses=True)
 
 # mongodb
 client = pymongo.MongoClient("mongodb://115.220.10.112:27017/")
@@ -79,6 +88,11 @@ def callback():
 
     # if event is MessageEvent and message is TextMessage, then echo text
     for event in events:
+        print('event: ' + str(event))
+
+        # if (event.type == 'postback'):
+        #     handle_Postback_Message(event)
+
         if not isinstance(event, MessageEvent):
             continue
         if isinstance(event.message, TextMessage):
@@ -109,9 +123,48 @@ def handle_TextMessage(event):
 
     label = classify_TextMessage(text)
 
-    if label == _STYLE:
+    if label == _ALL_STYLE:
+
+        style_list = []
+        for style in post.distinct('style'):
+            style_list.append(post.find_one({'style': style}, {'style': 1, 'popular_menu': {"$slice": 1}, '_id': 0}))
+
+        send_all_style_list_button_message(event, style_list)
+
+        user = Json.loads(str(event.source))
+        uid = user['userId']
+        redis1.incr(text)
+        redis1.incr(text + '-' + uid)
+
+    elif label == _STYLE:
         msg = 'Sorry, Not Found.'
         style_name = extract_style_data(text)
+        query = {'style': style_name}
+        print('query:' + str(query))
+        result_json = post.find(query)
+
+        if result_json is not None:
+            # result_json = json.loads(result_json_str)
+
+            # result = 'Style:' + style_name + '\n\n'
+
+            # for restaurant in result_json:
+            #     result += restaurant['restaurant'] + '\tTel:' + restaurant['tel'] + '\n' + 'Address:' + restaurant[
+            #         'address'] + '\n\n'
+
+            send_restaurant_list_button_message(event, style_name, result_json)
+
+            user = Json.loads(str(event.source))
+            uid = user['userId']
+            redis1.incr(text)
+            redis1.incr(text + '-' + uid)
+
+
+
+
+    elif label == _STYLE_IN_LIST:
+        msg = 'Sorry, Not Found.'
+        style_name = extract_style_in_list_data(text)
         query = {'style': style_name}
         print('query:' + str(query))
         result_json = post.find(query)
@@ -127,7 +180,13 @@ def handle_TextMessage(event):
 
             msg = result
 
+            user = Json.loads(str(event.source))
+            uid = user['userId']
+            redis1.incr(text)
+            redis1.incr(text + '-' + uid)
+
         send_text_message(event, msg)
+
 
     elif label == _RESTAURANT:
         msg = 'Sorry, Not Found.'
@@ -150,28 +209,61 @@ def handle_TextMessage(event):
             popular_list = result_json['popular_menu']
 
             if len(popular_list) > 0:
+                # result = 'Restaurant:' + result_json['restaurant'] + '\n\n' + 'Tel:' + result_json[
+                #     'tel'] + '\nAddress:' + result_json['address'] + '\nPopular Dishes:\n'
+                #
+                # for dish in popular_list:
+                #     result += '\t' + dish['dish'] + '\t $' + str(dish['price']) + '\n'
+                #
+                # msg = result
+                send_restaurant_button_message(event, result_json['environment'], title, address, result_json['tel'])
 
-                result = 'Restaurant:' + result_json['restaurant'] + '\n\n' + 'Tel:' + result_json[
-                    'tel'] + '\nAddress:' + result_json['address'] + '\nPopular Dishes:\n'
+            user = Json.loads(str(event.source))
+            uid = user['userId']
+            redis1.incr(text)
+            redis1.incr(text + '-' + uid)
+
+        # send_text_message(event, msg)
+        # if title != '' and address != '' and latitude != '' and longitude != '':
+        #
+        #     send_location_message(event, title, address, latitude, longitude)
+
+    elif label == _POPULAR:
+        title = ''
+        query = {'restaurant': extract_popular_dishes_data(text)}
+        print('query:' + str(query))
+        result_json = post.find_one(query)
+        if result_json is not None:
+
+            popular_list = result_json['popular_menu']
+
+            if len(popular_list) > 0:
+
+                result = 'Restaurant:' + result_json['restaurant'] + '\nPopular Dishes:\n'
 
                 for dish in popular_list:
                     result += '\t' + dish['dish'] + '\t $' + str(dish['price']) + '\n'
 
-                msg = result
+                all_text = result
 
-        send_text_message(event, msg)
-        if title != '' and address != '' and latitude != '' and longitude != '':
-            send_location_message(event, title, address, latitude, longitude)
+            send_popular_dishes_button_message(event, result_json['restaurant'], result_json['popular_menu'], all_text)
+
+            user = Json.loads(str(event.source))
+            uid = user['userId']
+            redis1.incr(text)
+            redis1.incr(text + '-' + uid)
 
     elif label == _FOOD:
         msg = 'Sorry, Not Found.'
         img_url = ''
         dish_name = ''
+        price = ''
         restaurant, food = extract_restaurant_food_data(text)
         query = {'restaurant': restaurant}
         print('query:' + str(query))
         json = post.find_one(query)
         if json is not None:
+
             popular_menu_list = json['popular_menu']
             if len(popular_menu_list) > 0:
                 for dish in popular_menu_list:
@@ -179,17 +271,24 @@ def handle_TextMessage(event):
                         print('Found dish:' + dish['dish'])
                         img_url = dish['img_url']
                         dish_name = dish['dish']
+                        price = str(dish['price'])
                         break
 
         if dish_name != '' and img_url != '':
-            msg = 'Restaurant:' + restaurant + '\n\n' + 'Dish:' + dish_name
+            msg = 'Restaurant:' + restaurant + '\n' + 'Dish:' + dish_name + '\tPrice: $' + price
             send_text_message(event, msg)
             send_image_message(event, img_url, img_url)
         elif dish_name != '' and img_url == '':
-            msg = 'Restaurant:' + restaurant + '\n\n' + 'Dish:' + dish_name + '\nSorry, there no image about the dish.'
+            msg = 'Restaurant:' + restaurant + '\n' + 'Dish:' + dish_name + '\tPrice: $' + price + '\nSorry, there no image about the dish.'
             send_text_message(event, msg)
         else:
             send_text_message(event, msg)
+
+        if json is not None:
+            user = Json.loads(str(event.source))
+            uid = user['userId']
+            redis1.incr(text)
+            redis1.incr(text + '-' + uid)
 
     elif label == _ENVIRONMENT:
         msg = 'Sorry, Not Found.'
@@ -201,6 +300,7 @@ def handle_TextMessage(event):
         print('query:' + str(query))
         json = post.find_one(query)
         if json is not None:
+
             if 'environment' in json:
                 img_url = json['environment']
 
@@ -222,6 +322,39 @@ def handle_TextMessage(event):
 
         if (img_url == '') and (video_url == '') and (video_img == ''):
             send_text_message(event, 'Sorry, Not Found.')
+
+        if json is not None:
+            user = Json.loads(str(event.source))
+            uid = user['userId']
+            redis1.incr(text)
+            redis1.incr(text + '-' + uid)
+
+    elif label == _LOCATION:
+
+        restaurant = extract_location_data(text)
+        query = {'restaurant': restaurant}
+        print('query:' + str(query))
+        json = post.find_one(query)
+
+        if json is not None:
+
+            title = json['restaurant']
+            if ('address' in json) and ('latitude' in json) and ('longitude' in json):
+                address = json['address']
+                latitude = json['latitude']
+                longitude = json['longitude']
+
+            if title != '' and address != '' and latitude != '' and longitude != '':
+                send_location_message(event, title, address, latitude, longitude)
+
+            user = Json.loads(str(event.source))
+            uid = user['userId']
+            redis1.incr(text)
+            redis1.incr(text + '-' + uid)
+
+
+    elif label == _CALL_US:
+        send_call_us_button_message(event)
 
     # line_bot_api.reply_message(
     #     event.reply_token,
@@ -263,9 +396,21 @@ def handle_FileMessage(event):
     )
 
 
+# def handle_Postback_Message(event):
+#
+#     js = json.loads(event.postback.data)
+#     if js['type'] == 'location':
+#         print('2com')
+#         send_location_message(event, js['title'],js['address'], js['latitude'], js['longitude'])
+
+
 def classify_TextMessage(text):
     text = str(text)
-    if 'style' in text:
+    if ('style list of' in text):
+        return _STYLE_IN_LIST
+    elif ('style list' in text):
+        return _ALL_STYLE
+    elif ('style' in text) and ('list' not in text):
         return _STYLE
     elif ('food' in text) and ('restaurant' in text):
         return _FOOD
@@ -273,6 +418,12 @@ def classify_TextMessage(text):
         return _RESTAURANT
     elif ('environment' in text) and ('restaurant' in text):
         return _ENVIRONMENT
+    elif ('popular' in text) and ('dishes' in text):
+        return _POPULAR
+    elif 'location' in text:
+        return _LOCATION
+    elif 'call admin' in text:
+        return _CALL_US
 
 
 def extract_style_data(text):
@@ -280,9 +431,20 @@ def extract_style_data(text):
     return text[text.index(key) + 5:].strip()
 
 
+def extract_style_in_list_data(text):
+    key = 'style list of'
+    print('extract:', text)
+    return text[text.index(key) + 13:].strip()
+
+
 def extract_restaurant_data(text):
     key = 'restaurant'
     return text[text.index(key) + 10:].strip()
+
+
+def extract_popular_dishes_data(text):
+    key = 'popular dishes'
+    return text[text.index(key) + 14:].strip()
 
 
 def extract_restaurant_food_data(text):
@@ -308,6 +470,15 @@ def extract_restaurant_environment(text):
     return result1
 
 
+def extract_location_data(text):
+    key = 'location'
+    return text[text.index(key) + 8:].strip()
+
+
+def send_text_message(text):
+    print(text)
+
+
 def send_text_message(event, msg_text):
     line_bot_api.reply_message(
         event.reply_token,
@@ -321,7 +492,7 @@ def send_image_message(event, msg_img_url, msg_preview_img_url):
     print('user', event.source)
     print('reply_token', event.reply_token)
 
-    user = json.loads(str(event.source))
+    user = Json.loads(str(event.source))
     print(user['userId'])
 
     try:
@@ -337,7 +508,7 @@ def send_location_message(event, msg_title, msg_address, msg_latitude, msg_longi
     print('latitude', msg_latitude)
     print('longitude', msg_longitude)
 
-    user = json.loads(str(event.source))
+    user = Json.loads(str(event.source))
     print(user['userId'])
 
     try:
@@ -353,13 +524,164 @@ def send_video_message(event, msg_video_img_url, msg_video_url):
     print('video_img_url', msg_video_img_url)
     print('video_url', msg_video_url)
 
-    user = json.loads(str(event.source))
+    user = Json.loads(str(event.source))
     print(user['userId'])
 
     try:
         line_bot_api.push_message(
             user['userId'],
             VideoSendMessage(original_content_url=msg_video_url, preview_image_url=msg_video_img_url)
+        )
+    except LineBotApiError as e:
+        raise e
+
+
+def send_all_style_list_button_message(event, style_list):
+    user = Json.loads(str(event.source))
+    uid = user['userId']
+    print('userId')
+    print(uid)
+
+    message = TemplateSendMessage(
+
+        alt_text='Style List',
+        template=CarouselTemplate(
+            columns=[CarouselColumn(thumbnail_image_url=style['popular_menu'][0]['img_url'], title=style['style'],
+                                    text=style['style'],
+                                    actions=[MessageAction(label=style['style'], text='style ' + style['style'])]) for
+                     style in style_list]
+        ))
+
+    try:
+        line_bot_api.push_message(
+            uid,
+            message
+        )
+    except LineBotApiError as e:
+        raise e
+
+
+def send_restaurant_button_message(event, image_url, title, address, tel):
+    user = Json.loads(str(event.source))
+    uid = user['userId']
+    print('userId')
+    print(uid)
+    message = TemplateSendMessage(
+        alt_text='Restaurant Buttons',
+        template=ButtonsTemplate(
+            thumbnail_image_url=image_url,
+            title=title,
+            text='Address:' + address,
+            actions=[
+                PostbackAction(
+                    label='Popular dishes',
+                    text='Popular dishes ' + title,
+                    data='action=1'
+                ),
+                PostbackAction(
+                    label='Environment',
+                    text='restaurant ' + title + ' environment',
+                    data='action=Environment'
+                ),
+                PostbackAction(
+                    label='Location',
+                    data='action=location',
+                    text='location ' + title
+                ),
+                URIAction(
+                    label='CALL',
+                    uri='tel:' + str(tel)
+                ),
+
+            ]
+        )
+    )
+    try:
+        line_bot_api.push_message(
+            uid,
+            message
+        )
+    except LineBotApiError as e:
+        raise e
+
+
+def send_popular_dishes_button_message(event, restaurant, dishes, all_text):
+    user = Json.loads(str(event.source))
+    uid = user['userId']
+    print('userId')
+    print(uid)
+    items = [QuickReplyButton(action=MessageAction(label=dish['dish'] + ' $' + str(dish['price']),
+                                                   text='restaurant ' + restaurant + ' food ' + dish['dish'])) for dish
+             in dishes]
+    items.insert(0, QuickReplyButton(action=MessageAction(label='All list', text=all_text)))
+    message = TextSendMessage(text='Popular dishes', quick_reply=QuickReply(items=items))
+    try:
+        line_bot_api.push_message(
+            uid,
+            message
+        )
+    except LineBotApiError as e:
+        raise e
+
+
+def send_restaurant_list_button_message(event, title, restaurant_list):
+    user = Json.loads(str(event.source))
+    uid = user['userId']
+    print('userId')
+    print(uid)
+
+    items = [
+        PostbackAction(label=restaurant['restaurant'], text='restaurant ' + restaurant['restaurant'], data='action=1')
+        for restaurant in restaurant_list]
+    items.insert(0, PostbackAction(label='All in list', text='style list of ' + title, data='action=1'))
+
+    message = TemplateSendMessage(
+        alt_text='Restaurant Buttons',
+        template=ButtonsTemplate(
+            thumbnail_image_url=None,
+            title=title,
+            text='Restaurant List',
+            actions=items
+        )
+    )
+    try:
+        line_bot_api.push_message(
+            uid,
+            message
+        )
+    except LineBotApiError as e:
+        raise e
+
+
+def send_call_us_button_message(event):
+    user = Json.loads(str(event.source))
+    uid = user['userId']
+    print('userId')
+    print(uid)
+
+    message = TemplateSendMessage(
+        alt_text='Confirm to call us',
+        template=ConfirmTemplate(
+            text='Confirm to call us?',
+            actions=[
+                URIAction(
+                    label='Yes',
+                    text='Yes',
+                    uri='tel:85263329050'
+                ),
+                MessageAction(
+                    label='No',
+                    text='Cancel to call',
+                    # data='action=cancel_call'
+                )
+            ]
+        )
+    )
+
+    try:
+        line_bot_api.reply_message(
+            event.reply_token,
+            message
         )
     except LineBotApiError as e:
         raise e
@@ -372,4 +694,4 @@ if __name__ == "__main__":
     arg_parser.add_argument('-d', '--debug', default=False, help='debug')
     options = arg_parser.parse_args()
 
-    app.run(host='0.0.0.0', debug=options.debug, port=heroku_port)
+    app.run(host='0.0.0.0', debug=False, port=heroku_port, threaded=True)
