@@ -22,7 +22,8 @@ from linebot.models import (
     StickerSendMessage,
     ImageSendMessage, LocationSendMessage, VideoSendMessage, QuickReply, TemplateSendMessage,
     PostbackAction, MessageAction, URIAction, ButtonsTemplate, URIImagemapAction, LocationAction, QuickReplyButton,
-    RichMenuBounds, RichMenuArea, RichMenuSize, RichMenu, CarouselTemplate, CarouselColumn, ConfirmTemplate)
+    RichMenuBounds, RichMenuArea, RichMenuSize, RichMenu, CarouselTemplate, CarouselColumn, ConfirmTemplate,
+    LocationMessage)
 from linebot.utils import PY3
 
 import json as Json
@@ -40,8 +41,8 @@ _LOCATION = 7
 _CALL_US = 8
 _NEARBY = 9
 
-#Google map API key
-GOOGLE_API_KEY = ''  # due to confidentiality, it will not be published on GitHub
+# Google map API key
+GOOGLE_API_KEY = 'AIzaSyAH5qFJ9JfgCdblC-6Y282wFMxCXA6TeHM'  # due to confidentiality, it will not be published on GitHub
 
 # redis parameters
 HOST = "redis-18235.c228.us-central1-1.gce.cloud.redislabs.com"
@@ -111,6 +112,8 @@ def callback():
             handle_FileMessage(event)
         if isinstance(event.message, StickerMessage):
             handle_StickerMessage(event)
+        if isinstance(event.message, LocationMessage):
+            handle_LocationMessage(event)
 
         if not isinstance(event, MessageEvent):
             continue
@@ -364,7 +367,7 @@ def handle_TextMessage(event):
 
     elif label == _NEARBY:
         nearby = extract_nearby_data(text)
-        restaurant_list, image_list, map_url_lit = get_3_restaurants_nearby(nearby)
+        restaurant_list, image_list, map_url_lit = get_3_restaurants_nearby(nearby=nearby)
         send_nearby_restaurant_list_message(event, restaurant_list, image_list, map_url_lit)
 
         user = Json.loads(str(event.source))
@@ -410,6 +413,14 @@ def handle_FileMessage(event):
         event.reply_token,
         TextSendMessage(text="Nice file!")
     )
+
+
+def handle_LocationMessage(event):
+    if (event.message.latitude is not None) and (event.message.longitude is not None):
+        print('location:', str(event.message.latitude), str(event.message.longitude))
+        restaurant_list, image_list, map_url_lit =  get_3_restaurants_nearby(latlng=[event.message.latitude, event.message.longitude])
+        send_nearby_restaurant_list_message(event, restaurant_list, image_list, map_url_lit)
+
 
 
 # def handle_Postback_Message(event):
@@ -498,15 +509,24 @@ def extract_nearby_data(text):
     return text[text.index(key) + 6:].strip()
 
 
-def get_3_restaurants_nearby(nearby):
+def get_3_restaurants_nearby(nearby=None, latlng=None):
     restaurant_list = []
     thumbnail_image_url_list = []
     map_url_list = []
+    addurl = ''
 
-    addurl = 'https://maps.googleapis.com/maps/api/geocode/json?key={}&address={}&sensor=false'.format(GOOGLE_API_KEY,
-                                                                                                       nearby)
+    if (nearby is not None) and (latlng is None):
+        addurl = 'https://maps.googleapis.com/maps/api/geocode/json?key={}&address={}&sensor=false'.format(
+            GOOGLE_API_KEY,
+            nearby)
+    elif (nearby is None) and (latlng is not None):
+        addurl = 'https://maps.googleapis.com/maps/api/geocode/json?key={}&latlng={},{}&sensor=false'.format(
+            GOOGLE_API_KEY,
+            latlng[0], latlng[1])
+    else:
+        return
 
-    # get current location
+        # get current location
     addressReq = requests.get(addurl)
     addressDoc = addressReq.json()
     if len(addressDoc['results']) <= 0:
@@ -561,7 +581,7 @@ def get_3_restaurants_nearby(nearby):
         restaurant_list[i]['rating'] = 'no rating' if restaurant_list[i].get('rating') is None else restaurant_list[i][
             'rating']
         restaurant_list[i]['vicinity'] = 'No info' if restaurant_list[i].get('vicinity') is None else \
-        restaurant_list[i]['vicinity']
+            restaurant_list[i]['vicinity']
 
         # the url of current map
         lat = str(restaurant_list[i]['geometry']['location']['lat'])
@@ -798,7 +818,7 @@ def send_nearby_restaurant_list_message(event, restaurant_list, image_list, map_
         title = restaurant_list[i]['name'][:37] + '...' if len(restaurant_list[i]['name']) > 39 else restaurant_list[i][
             'name']
         vicinity = restaurant_list[i]['vicinity'][:27] + '...' if len(restaurant_list[i]['vicinity']) > 30 else \
-        restaurant_list[i]['vicinity']
+            restaurant_list[i]['vicinity']
         print(title)
         print(vicinity)
         items.append(
@@ -816,6 +836,8 @@ def send_nearby_restaurant_list_message(event, restaurant_list, image_list, map_
         ))
 
     try:
+        send_text_message(event, 'Recommend to you:')
+
         line_bot_api.push_message(
             uid,
             message
