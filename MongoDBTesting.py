@@ -21,6 +21,7 @@ result2 = post.find_one({'style': 'western'},{'style': 1,'popular_menu.img_url':
 result3 = post.find_one({'style': 'japan'},{'style': 1,'popular_menu.img_url': 1,'_id': 0})
 
 
+
 print(post.distinct('style'))
 
 print(result1,"\n",result2,"\n",result3)
