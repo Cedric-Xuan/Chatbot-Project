@@ -32,7 +32,7 @@ Our group proposes a Line channel about the **Hong Kong Gourmet Circle**. User c
 | Usage of redis server                          | 1%   |                                                              |
 | Consumption of other service other than redis  | 2%   |                                                              |
 | Compliance of other constrains                 | 1%   |                                                              |
-| Usefulness of the bot to the real world        | 7%   | [Helping HK catering industry recover from COVID-19's effect.](#memo-Introduction) |
+| Usefulness of the bot to the real world        | 7%   | [Helping HK catering industry recover from COVID-19's effect.](#📝-Introduction) |
 | Appropriate usage of technologies              | 2%   |                                                              |
 | Attractiveness and completeness                | 2%   |                                                              |
 | Presentation                                   | 1%   |                                                              |
