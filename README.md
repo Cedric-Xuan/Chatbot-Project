@@ -67,7 +67,7 @@ If many users send requests at the same time, the system may have the problem of
 
 ##  💡 Screenshot of LINE channel
 
-<img src="/img/LINE1.jpg" alt="LINE" style="zoom: 25%;" />
+<img src="/img/LINE1.jpg" width = "280" height = "569" />
 
-<img src="/img/LINE2.jpg" alt="LINE" style="zoom:25%;" />
+<img src="/img/LINE2.jpg" width = "280" height = "569" />
 
