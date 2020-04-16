@@ -2,6 +2,18 @@
 
 
 
+## Student info
+
+Posting our team info for TA firstly.
+
+|       Name       | Student number |
+| :--------------: | :------------: |
+| **XUAN Yongzhe** |  **19409370**  |
+| **HAN Zhenxin**  |  **19434294**  |
+| **LIN Shidong**  |  **19430000**  |
+
+
+
 ## 📝 Introduction
 
 With the spread of **COVID-19**, the catering industry in Hong Kong is becoming more and more difficult. In order to support the catering industry **recovery** in Hong Kong, we developed a chat robot based on LINE channel so that we can learn the latest catering information without leaving the house.
@@ -12,15 +24,23 @@ Our group proposes a Line channel about the **Hong Kong Gourmet Circle**. User c
 
 
 
-## Student info
+## ✏️ Get the point from marking criteria
 
-Posting our team info for TA firstly.
+| Item                                           | Mark | In our project                                               |
+| ---------------------------------------------- | ---- | ------------------------------------------------------------ |
+| Ability to handle X different types of queries | 1%   | [We main ....](#标题1)                                       |
+| Usage of redis server                          | 1%   |                                                              |
+| Consumption of other service other than redis  | 2%   |                                                              |
+| Compliance of other constrains                 | 1%   |                                                              |
+| Usefulness of the bot to the real world        | 7%   | [Helping HK catering industry recover from COVID-19's effect.](#📝 Introduction) |
+| Appropriate usage of technologies              | 2%   |                                                              |
+| Attractiveness and completeness                | 2%   |                                                              |
+| Presentation                                   | 1%   |                                                              |
+| sub-total                                      | 17%  |                                                              |
+| milestone4.pdf                                 | 10%  |                                                              |
+| Total for Milestone 4                          | 27%  |                                                              |
 
-|       Name       | Student number |
-| :--------------: | :------------: |
-| **XUAN Yongzhe** |  **19409370**  |
-| **HAN Zhenxin**  |  **19434294**  |
-| **LIN Shidong**  |  **19430000**  |
+
 
 
 
@@ -47,7 +67,7 @@ The technologies we currently as follow:
 
 
 
-## ✏️ Capacity of service
+## 💾 Capacity of service
 
 ##### Expand Cloud Storage:
 
