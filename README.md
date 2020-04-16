@@ -40,9 +40,9 @@ The technologies we currently as follow:
 | Python                              | Use pyhton to develop our chatbot, to process different type of message and query, and set controls of LINE channel. |
 | Linux / Alibaba Cloud server        |                Support our MongoDB database.                 |
 | MongoDB                             |               Store the json data of gourmet.                |
-| Redis                               |                                                              |
+| Redis                               |     Record user behavior via usage count of each function    |
 | Alibaba OSS(Object Storage Service) |          Store large file, such as image and video.          |
-| Google Maps API                     |                                                              |
+| Google Maps API                     |allow user to search nearby 3 restaurants in certain location or address|
 | LINE Messaging API                  | LINE API provide the information transmission between chatbot and LINE channel. |
 
 
