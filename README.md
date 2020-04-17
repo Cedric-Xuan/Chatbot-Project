@@ -20,7 +20,7 @@ With the spread of **COVID-19**, the catering industry in Hong Kong is becoming 
 
 
 
-Our group proposes a Line channel about the **Hong Kong Gourmet Circle**. User can gain information about **Hong Kong delicious food** via communicating with our chat bot, including restaurant information (address, menu, picture, and video) and food information (dish name and picture). 
+Our group proposes a Line channel about the **Hong Kong Gourmet Circle**. User can gain information about **Hong Kong delicious food** via communicating with our chat bot, including restaurant information (address, menu, picture, and video) and food information (dish name and picture), also, we add web crawler to get latest hot coupons of restaurants. 
 
 
 
@@ -28,15 +28,15 @@ Our group proposes a Line channel about the **Hong Kong Gourmet Circle**. User c
 
 | Item                                           | Mark | In our project                                               |
 | ---------------------------------------------- | ---- | ------------------------------------------------------------ |
-| Ability to handle X different types of queries | 1%   | [We main ....](#标题1)                                       |
+| Ability to handle X different types of queries | 1%   | [All style](#All-style); [a certain style](#Certain-style); [popular dishes](#Certain-style); [telphone](#Telphone); [location](#Location); [environment picture/video](#Environment-picture/video); [detail information of restaurants](#Detail-information-of-restaurants); [recent coupons information](#Recent-coupons-information); [nearby high rating restaurants](#Nearby-high-rating-restaurants), totally 9 of them. |
 | Usage of redis server                          | 1%   | As we mention in [technology](#-Technology) table, we use redis to store the record of user behavior. |
-| Consumption of other service other than redis  | 2%   | We use [MongoDB, Alibaba OSS, CentOS cloud server and google maps API as our other service](#-Technology). |
-| Compliance of other constrains                 | 1%   |                                                              |
+| Consumption of other service other than redis  | 2%   | We use [MongoDB, Alibaba OSS, CentOS cloud server and google maps API](#-Technology) as our other service. |
+| Compliance of other constrains                 | 1%   | As you can see, we developed this project all follow teacher's requirement. |
 | Usefulness of the bot to the real world        | 7%   | [Helping HK catering industry recover from COVID-19's effect.](#-Introduction) |
-| Appropriate usage of technologies              | 2%   |                                                              |
-| Attractiveness and completeness                | 2%   | The [screenshot](#-Screenshot-of-LINE-channel) of our channel show the attractiveness, and we use many [technologies](#-Technology) to achieve completeness |
-| Presentation                                   | 1%   |                                                              |
-| sub-total                                      | 17%  |                                                              |
+| Appropriate usage of technologies              | 2%   | No matter is Redis, MongoDB or OSS, we have exactly [purposes ](#-Technology)of usage |
+| Attractiveness and completeness                | 2%   | The [screenshot](#-Description-of-different-fuction) of our channel show the attractiveness, and we use many [technologies](#-Technology) to achieve completeness |
+| Presentation                                   | 1%   | Update later~                                                |
+| sub-total                                      | 17%  | We try our best to chase the point above, so we believe we can get all point above. |
 | milestone4.pdf                                 | 10%  | We spend many time on writing [milestone4.pdf](https://github.com/Cedric-Xuan/Chatbot-Project/blob/master/7940_milestone4.pdf) |
 | Total for Milestone 4                          | 27%  |                                                              |
 
@@ -44,7 +44,15 @@ Our group proposes a Line channel about the **Hong Kong Gourmet Circle**. User c
 
 ## 🍉 Demo
 
+​	**Scan the QR code to fellow the LINE Channel.**
+
+
+
 ![LINE](/img/LINE_QR.png)
+
+
+
+​											
 
 
 
@@ -58,10 +66,11 @@ The technologies we currently as follow:
 | Python                              | Use pyhton to develop our chatbot, to process different type of message and query, and set controls of LINE channel. |
 | Linux / Alibaba Cloud server        |                Support our MongoDB database.                 |
 | MongoDB                             |               Store the json data of gourmet.                |
-| Redis                               |     Record user behavior via usage count of each function.    |
+| Redis                               | Record user behavior via usage count of each function, store latest hot coupons. |
 | Alibaba OSS(Object Storage Service) |          Store large file, such as image and video.          |
-| Google Maps API                     |Recommend 3 nearby restaurants to user in the certain location or address.|
+| Google Maps API                     | Recommend 3 nearby restaurants to user in the certain location or address. |
 | LINE Messaging API                  | LINE API provide the information transmission between chatbot and LINE channel. |
+| Web crawler                         |            Get latest hot coupons of restaurants             |
 
 
 
@@ -83,7 +92,71 @@ If many users send requests at the same time, the system may have the problem of
 
 
 
-##  💡 Screenshot of LINE channel
+##  💡 Description of different fuction
 
-​         <img src="/img/LINE1.jpg" width = "280" height = "569" />                                    <img src="/img/LINE2.jpg" width = "280" height = "569" />
+In this part, we will introduce the fuction of our chatbot, post all specific screenshot of demonstration, and we also welcome you to test it in our channel.
+
+##### All style
+
+We can choose different functions via the initial menu, made by rich-menu in Line.
+
+In this menu, we have four different type of dishes, Chinese food, Japeness food, Western food and Thai food, user can query different type of food via click different button.
+
+<img src="/img/All_list_img.jpg" width = "280" height = "569" /> 
+
+
+
+##### Certain style
+
+When you select specific type of cuisine, for example, Western food, you will get the restuarant list.
+
+<img src="/img/Food_type_img.jpg" width = "280" height = "569" />
+
+
+
+##### Recent coupons information
+
+If you choose "Gain western coupons", then you can get some coupons of different restuarants.
+
+<img src="/img/Conpon_img.jpg" width = "280" height = "569" />
+
+##### Detail information of restaurants
+
+If you choose specific restuarant, for example, "登堂", then you can continue select popular dishes, environment, location and call restuarant.
+
+<img src="/img/Specific_restuarant_img.jpg" width = "280" height = "569" />
+
+
+
+##### popular dishes
+
+Get popular dishes of the restuarant(Show in the bottom of interface).
+
+<img src="/img/popular_dishes_img.jpg" width = "280" height = "569" />
+
+##### Environment picture/video
+
+Get the picture/video of restuarant.
+
+<img src="/img/Environment_img.jpg" width = "280" height = "569" />
+
+##### Location
+
+Get the address of restuarant.
+
+<img src="/img/Location_img.jpg" width = "280" height = "569" />
+
+##### Telphone
+
+Get the address of restuarant, and you can make a phone call.
+
+<img src="/img/Phone_img.jpg" width = "280" height = "569" />
+
+##### Nearby high rating restaurants
+
+
+
+<img src="/img/Conpon_img.jpg" width = "280" height = "569" />
+
+
 
