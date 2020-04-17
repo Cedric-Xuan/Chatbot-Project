@@ -59,6 +59,7 @@ The technologies we currently as follow:
 | Linux / Alibaba Cloud server        |                Support our MongoDB database.                 |
 | MongoDB                             |               Store the json data of gourmet.                |
 | Redis                               |Record user behavior via usage count of each function. And save the coupons information for 3 hours as cache|
+| BeautifulSoup                       |      Crawl the coupons information from OpenRice in HK       |
 | Alibaba OSS(Object Storage Service) |          Store large file, such as image and video.          |
 | Google Maps API                     |Recommend 3 nearby restaurants to user in the certain location or address.|
 | LINE Messaging API                  | LINE API provide the information transmission between chatbot and LINE channel. |
