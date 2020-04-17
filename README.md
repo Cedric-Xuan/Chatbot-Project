@@ -3,13 +3,13 @@
 - [美食小天地--LINE Chatbot](#-------line-chatbot)
   * [Student info](#student-info)
   * [📝 Introduction](#-introduction)
-  * [✏️ Get the point from marking criteria](#-get-the-point-from-marking-criteria)
+  * [✏️ Get the point from marking criteria](#-Get-the-point-from-marking-criteria)
   * [🍉 Demo](#-demo)
   * [🔧 Technology](#-technology)
   * [💾 Capacity of service](#-capacity-of-service)
         * [Expand Cloud Storage:](#expand-cloud-storage-)
         * [Improve the processing ability of Flask](#improve-the-processing-ability-of-flask)
-  * [💡 Description of different fuction](#---description-of-different-fuction)
+  * [💡 Description of different fuction](#-description-of-different-fuction)
         * [1.All style](#1all-style)
         * [2.Certain style](#2certain-style)
         * [3.Recent coupons information](#3recent-coupons-information)
@@ -94,7 +94,7 @@ The technologies we currently as follow:
 
 ## 💾 Capacity of service
 
-##### Expand Cloud Storage:
+#####  Expand Cloud Storage:
 
 Talking about the storage capacity, we use OSS (object storage service), which is provided by Alibaba Cloud, we upload large data, such as video and image, into OSS.
 
