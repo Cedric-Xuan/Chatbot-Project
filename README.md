@@ -28,7 +28,7 @@ Our group proposes a Line channel about the **Hong Kong Gourmet Circle**. User c
 
 | Item                                           | Mark | In our project                                               |
 | ---------------------------------------------- | ---- | ------------------------------------------------------------ |
-| Ability to handle X different types of queries | 1%   |1.All style  2.a certain style of restaurants  3.popular dishes of restaurants  4.telphone of restaurants  5.location of restaurants  6.environment picture/video of restaurants  7.detailed information of restaurants  8.recent coupons information in all styles  9.recent coupons information in a certain style  10.nearby high ratings restaurants |
+| Ability to handle X different types of queries | 1%   |1.All style<br>  2.a certain style of restaurants  3.popular dishes of restaurants  4.telphone of restaurants  5.location of restaurants  6.environment picture/video of restaurants  7.detailed information of restaurants  8.recent coupons information in all styles  9.recent coupons information in a certain style  10.nearby high ratings restaurants |
 | Ability to handle X different types of queries | 1%   | all style of restaurants, a certain style of restaurants, nearby restaurants, hot coupons information,  location of the restaurants, |
 | Usage of redis server                          | 1%   | As we mention in [technology](#-Technology) table, we use redis to store the record of user behavior. And save the coupons information for 3 hours as cache.|
 | Consumption of other service other than redis  | 2%   | We use [MongoDB, Alibaba OSS, CentOS cloud server and google maps API as our other service](#-Technology). |
