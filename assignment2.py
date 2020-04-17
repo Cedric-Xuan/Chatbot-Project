@@ -29,6 +29,7 @@ from linebot.utils import PY3
 import json as Json
 import requests
 import random
+from bs4 import BeautifulSoup
 
 _ALL_STYLE = 0
 _STYLE = 1
@@ -40,14 +41,25 @@ _POPULAR = 6
 _LOCATION = 7
 _CALL_US = 8
 _NEARBY = 9
+_COUPON = 10
+_COUPON_CHINA = 11
+_COUPON_JAPAN = 12
+_COUPON_THAI = 13
+_COUPON_WESTERN = 14
+
+
+STYLE_CHINA = 1002
+STYLE_JAPAN = 2009
+STYLE_THAI = 2005
+STYLE_WESTERN = 4000
 
 # Google map API key
 GOOGLE_API_KEY = 'AIzaSyAH5qFJ9JfgCdblC-6Y282wFMxCXA6TeHM'  # due to confidentiality, it will not be published on GitHub
 
 # redis parameters
-HOST = "redis-18235.c228.us-central1-1.gce.cloud.redislabs.com"
+HOST = "redis-16611.c1.us-central1-2.gce.cloud.redislabs.com"
 PWD = "w2vwWBPYLIgggR0kiQzkMX7CXN4L1KjC"
-PORT = "18235"
+PORT = "16611"
 
 redis1 = redis.Redis(host=HOST, password=PWD, port=PORT, decode_responses=True)
 
@@ -374,6 +386,28 @@ def handle_TextMessage(event):
         uid = user['userId']
         redis1.incr('nearby')
         redis1.incr('nearby-' + uid)
+        
+    elif label == _COUPON:
+        coupon_list = get_5_coupons_list()
+        send_coupon_list_message(event, coupon_list)
+
+    elif label == _COUPON_CHINA:
+        coupon_list = get_5_coupons_list(type=STYLE_CHINA)
+        send_coupon_list_message(event, coupon_list)
+
+    elif label == _COUPON_JAPAN:
+        coupon_list = get_5_coupons_list(type=STYLE_JAPAN)
+        send_coupon_list_message(event, coupon_list)
+
+    elif label == _COUPON_THAI:
+        coupon_list = get_5_coupons_list(type=STYLE_THAI)
+        send_coupon_list_message(event, coupon_list)
+
+    elif label == _COUPON_WESTERN:
+        coupon_list = get_5_coupons_list(type=STYLE_WESTERN)
+        send_coupon_list_message(event, coupon_list)
+        
+
 
     # line_bot_api.reply_message(
     #     event.reply_token,
@@ -421,6 +455,11 @@ def handle_LocationMessage(event):
         restaurant_list, image_list, map_url_lit =  get_3_restaurants_nearby(latlng=[event.message.latitude, event.message.longitude])
         send_nearby_restaurant_list_message(event, restaurant_list, image_list, map_url_lit)
 
+        user = Json.loads(str(event.source))
+        uid = user['userId']
+        redis1.incr('location')
+        redis1.incr('location-' + uid)
+
 
 
 # def handle_Postback_Message(event):
@@ -453,6 +492,16 @@ def classify_TextMessage(text):
         return _CALL_US
     elif 'nearby' in text:
         return _NEARBY
+    elif 'coupon china' in text:
+        return _COUPON_CHINA
+    elif 'coupon japan' in text:
+        return _COUPON_JAPAN
+    elif 'coupon thai' in text:
+        return _COUPON_THAI
+    elif 'coupon western' in text:
+        return _COUPON_WESTERN
+    elif 'coupon' in text:
+        return _COUPON
 
 
 def extract_style_data(text):
@@ -594,6 +643,75 @@ def get_3_restaurants_nearby(nearby=None, latlng=None):
     return restaurant_list, thumbnail_image_url_list, map_url_list
 
 
+def get_5_coupons_list(type=None):
+
+    url = ''
+    key =''
+    all_url = "https://www.openrice.com/api/offers?uiLang=zh&uiCity=hongkong&page=1&sortBy=PublishTime&couponTypeId=1"
+    china_url = "https://www.openrice.com/api/offers?uiLang=zh&uiCity=hongkong&page=1&sortBy=PublishTime&couponTypeId=1&cuisineId=1002"
+    japan_url = "https://www.openrice.com/api/offers?uiLang=zh&uiCity=hongkong&page=1&sortBy=PublishTime&couponTypeId=1&cuisineId=2009"
+    thai_url = "https://www.openrice.com/api/offers?uiLang=zh&uiCity=hongkong&page=1&sortBy=PublishTime&couponTypeId=1&cuisineId=2005"
+    west_url = "https://www.openrice.com/api/offers?uiLang=zh&uiCity=hongkong&page=1&sortBy=PublishTime&couponTypeId=1&cuisineId=4000"
+
+    all_key = 'hot_coupon_all'
+    china_key = 'hot_coupon_china'
+    japan_key = 'hot_coupon_japan'
+    thai_key = 'hot_coupon_thai'
+    western_key = 'hot_coupon_western'
+
+    if type == STYLE_CHINA:
+        url = china_url
+        key = china_key
+    elif type == STYLE_JAPAN:
+        url = japan_url
+        key = japan_key
+    elif type == STYLE_THAI:
+        url = thai_url
+        key = thai_key
+    elif type == STYLE_WESTERN:
+        url = west_url
+        key = western_key
+    else:
+        url = all_url
+        key = all_key
+
+    if redis1.ttl(key) > 0:
+        result = list(redis1.smembers(key))
+
+        coupon_list = list(Json.loads(result[0]))
+        print('read redis coupons')
+        
+    else:
+
+        headers = {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Language': 'zh,zh-CN;q=0.9,en;q=0.8,zh-TW;q=0.7',
+            'Connection': 'Keep-Alive',
+            'Host': 'www.openrice.com',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36'
+        }
+    
+    
+        html = requests.get(url, headers=headers)
+        page = BeautifulSoup(html.text, 'lxml')
+        if page.find('p') is None:
+            return
+        web_json = html.json()
+        result_json = web_json['searchResult']['paginationResult']['results']
+        coupon_list = list(result_json)
+        redis1.sadd(key, Json.dumps(result_json, ensure_ascii=False))
+        redis1.expire(key, 10800) # expire after 3 hours
+        print('request coupons')
+
+
+
+    if len(coupon_list) >= 5:
+        coupon_list = random.sample(coupon_list, 5)
+
+    return coupon_list
+
+
 def send_text_message(event, msg_text):
     line_bot_api.reply_message(
         event.reply_token,
@@ -663,7 +781,7 @@ def send_all_style_list_button_message(event, style_list):
         template=CarouselTemplate(
             columns=[CarouselColumn(thumbnail_image_url=style['popular_menu'][0]['img_url'], title=style['style'],
                                     text=style['style'],
-                                    actions=[MessageAction(label=style['style'], text='style ' + style['style'])]) for
+                                    actions=[MessageAction(label='Restaurant list', text='style ' + style['style']), MessageAction(label='Gain hot coupons', text='coupon ' + style['style'])]) for
                      style in style_list]
         ))
 
@@ -749,6 +867,7 @@ def send_restaurant_list_button_message(event, title, restaurant_list):
         PostbackAction(label=restaurant['restaurant'], text='restaurant ' + restaurant['restaurant'], data='action=1')
         for restaurant in restaurant_list]
     items.insert(0, PostbackAction(label='All in list', text='style list of ' + title, data='action=1'))
+    # items.append(PostbackAction(label='Gain hot coupons', text='coupon ' + title, data='action=1'))
 
     message = TemplateSendMessage(
         alt_text='Restaurant Buttons',
@@ -766,6 +885,18 @@ def send_restaurant_list_button_message(event, title, restaurant_list):
         )
     except LineBotApiError as e:
         raise e
+
+
+    items = [QuickReplyButton(action=MessageAction(label='Gain '+title+' coupons', text='coupon ' + title)),QuickReplyButton(action=MessageAction(label='Gain all hot coupons', text='coupon'))]
+    message = TextSendMessage(text='Hey! Some hot coupons here!', quick_reply=QuickReply(items=items))
+    try:
+        line_bot_api.push_message(
+            uid,
+            message
+        )
+    except LineBotApiError as e:
+        raise e
+
 
 
 def send_call_us_button_message(event):
@@ -837,6 +968,60 @@ def send_nearby_restaurant_list_message(event, restaurant_list, image_list, map_
 
     try:
         send_text_message(event, 'Recommend to you:')
+
+        line_bot_api.push_message(
+            uid,
+            message
+        )
+    except LineBotApiError as e:
+        raise e
+
+
+def send_coupon_list_message(event, coupon_list):
+    user = Json.loads(str(event.source))
+    uid = user['userId']
+    print('userId')
+    print(uid)
+
+    host = 'https://www.openrice.com'
+
+    if len(coupon_list) <= 0:
+        send_text_message(event, 'Sorry, not found.')
+        return
+
+    items = []
+
+    for i in range(len(coupon_list)):
+        title = coupon_list[i]['title']
+        desc = coupon_list[i]['desc']
+        start = coupon_list[i]['startTime'][:10]
+        expire = coupon_list[i]['expireTime'][:10]
+        POI = coupon_list[i]['multiplePoiDisplayName']
+        district = coupon_list[i]['multiplePoiDistrictName']
+        url = host + coupon_list[i]['urlUI']
+        hitCount = coupon_list[i]['hitCount']
+        img_url = coupon_list[i]['doorPhotos'][0]['urls']['thumbnail']
+
+        title = title[:37] + '...' if len(title) > 39 else title
+        desc = POI[:17] + '...' if len(POI) > 19 else POI +'\n'+ \
+                                                     desc[:7] + '...' if len(desc) > 10 else desc+'\n'+ \
+                                                                                              district[:6] + '...' if len(district) > 8 else district
+        items.append(
+
+            CarouselColumn(thumbnail_image_url=img_url, title=title,
+                           text=desc,
+                           actions=[URIAction(label='Click to gain', uri=url)])
+        )
+
+    message = TemplateSendMessage(
+
+        alt_text='Recommend List',
+        template=CarouselTemplate(
+            columns=items
+        ))
+
+    try:
+        send_text_message(event, 'Recommend coupons to you:')
 
         line_bot_api.push_message(
             uid,

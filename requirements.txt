@@ -2,3 +2,6 @@ flask
 redis
 line-bot-sdk
 pymongo
+requests
+bs4
+lxml
