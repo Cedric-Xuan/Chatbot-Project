@@ -29,7 +29,7 @@ Our group proposes a Line channel about the **Hong Kong Gourmet Circle**. User c
 | Item                                           | Mark | In our project                                               |
 | ---------------------------------------------- | ---- | ------------------------------------------------------------ |
 | Ability to handle X different types of queries | 1%   | [We main ....](#标题1)                                       |
-| Usage of redis server                          | 1%   | As we mention in [technology](#-Technology) table, we use redis to store the record of user behavior. |
+| Usage of redis server                          | 1%   | As we mention in [technology](#-Technology) table, we use redis to store the record of user behavior. And save the coupons information for 3 hours as cache.|
 | Consumption of other service other than redis  | 2%   | We use [MongoDB, Alibaba OSS, CentOS cloud server and google maps API as our other service](#-Technology). |
 | Compliance of other constrains                 | 1%   |                                                              |
 | Usefulness of the bot to the real world        | 7%   | [Helping HK catering industry recover from COVID-19's effect.](#-Introduction) |
@@ -59,7 +59,7 @@ The technologies we currently as follow:
 | Linux / Alibaba Cloud server        |                Support our MongoDB database.                 |
 | MongoDB                             |               Store the json data of gourmet.                |
 | Redis                               |Record user behavior via usage count of each function. And save the coupons information for 3 hours as cache|
-| BeautifulSoup                       |      Crawl the coupons information from OpenRice in HK       |
+| BeautifulSoup                       |      Crawl the coupons information from OpenRice in HK.      |
 | Alibaba OSS(Object Storage Service) |          Store large file, such as image and video.          |
 | Google Maps API                     |Recommend 3 nearby restaurants to user in the certain location or address.|
 | LINE Messaging API                  | LINE API provide the information transmission between chatbot and LINE channel. |
