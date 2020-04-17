@@ -1,6 +1,24 @@
 # 美食小天地--LINE Chatbot
 
-
+- [美食小天地--LINE Chatbot](#-------line-chatbot)
+  * [Student info](#student-info)
+  * [📝 Introduction](#---introduction)
+  * [✏️ Get the point from marking criteria](#---get-the-point-from-marking-criteria)
+  * [🍉 Demo](#---demo)
+  * [🔧 Technology](#---technology)
+  * [💾 Capacity of service](#---capacity-of-service)
+        * [Expand Cloud Storage:](#expand-cloud-storage-)
+        * [Improve the processing ability of Flask](#improve-the-processing-ability-of-flask)
+  * [💡 Description of different fuction](#---description-of-different-fuction)
+        * [1.All style](#1all-style)
+        * [2.Certain style](#2certain-style)
+        * [3.Recent coupons information](#3recent-coupons-information)
+        * [4.Detail information of restaurants](#4detail-information-of-restaurants)
+        * [5.popular dishes](#5popular-dishes)
+        * [6.Environment](#6environment)
+        * [7.Location](#7location)
+        * [8.Telphone](#8telphone)
+        * [9.Nearby high rating restaurants](#9nearby-high-rating-restaurants)
 
 ## Student info
 
@@ -28,7 +46,7 @@ Our group proposes a Line channel about the **Hong Kong Gourmet Circle**. User c
 
 | Item                                           | Mark | In our project                                               |
 | ---------------------------------------------- | ---- | ------------------------------------------------------------ |
-| Ability to handle X different types of queries | 1%   | [All style](#1.All-style); [a certain style](#2.Certain-style); [popular dishes](#3.Certain-style); [telphone](#4.Telphone); [location](#5.Location); [environment picture/video](#6.Environment); [detail information of restaurants](#7.Detail-information-of-restaurants); [recent coupons information](#8.Recent-coupons-information); [nearby high rating restaurants](#9.Nearby-high-rating-restaurants), totally 9 of them. |
+| Ability to handle X different types of queries | 1%   | [All style](#1All-style); [a certain style](#2Certain-style); [popular dishes](#3Certain-style); [telphone](#4Telphone); [location](#5Location); [environment picture/video](#6Environment); [detail information of restaurants](#7Detail-information-of-restaurants); [recent coupons information](#8Recent-coupons-information); [nearby high rating restaurants](#9Nearby-high-rating-restaurants), totally 9 of them. |
 | Usage of redis server                          | 1%   | As we mention in [technology](#-Technology) table, we use redis to store the record of user behavior. |
 | Consumption of other service other than redis  | 2%   | We use [MongoDB, Alibaba OSS, CentOS cloud server and google maps API](#-Technology) as our other service. |
 | Compliance of other constrains                 | 1%   | As you can see, we developed this project all follow teacher's requirement. |
