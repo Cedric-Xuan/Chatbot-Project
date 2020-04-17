@@ -174,7 +174,7 @@ Get the address of restuarant, and you can make a phone call.
 
 Recommend three high rating restaurants near the query address randomly.
 
-<img src="/img/Conpon_img.jpg" width = "280" height = "569" />
+<img src="/img/Nearby_img.jpg" width = "280" height = "569" /><img src="/img/Nearby2_img.jpg" width = "280" height = "569" />
 
 
 
