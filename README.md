@@ -30,7 +30,7 @@ Our group proposes a Line channel about the **Hong Kong Gourmet Circle**. User c
 | ---------------------------------------------- | ---- | ------------------------------------------------------------ |
 | Ability to handle X different types of queries | 1%   | [We main ....](#标题1)                                       |
 | Usage of redis server                          | 1%   | As we mention in [technology](#-Technology) table, we use redis to store the record of user behavior. |
-| Consumption of other service other than redis  | 2%   |                                                              |
+| Consumption of other service other than redis  | 2%   | We use [MongoDB, Alibaba OSS, CentOS cloud server and google maps API as our other service](#-Technology). |
 | Compliance of other constrains                 | 1%   |                                                              |
 | Usefulness of the bot to the real world        | 7%   | [Helping HK catering industry recover from COVID-19's effect.](#-Introduction) |
 | Appropriate usage of technologies              | 2%   |                                                              |
