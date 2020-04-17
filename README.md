@@ -46,7 +46,7 @@ Our group proposes a Line channel about the **Hong Kong Gourmet Circle**. User c
 
 | Item                                           | Mark | In our project                                               |
 | ---------------------------------------------- | ---- | ------------------------------------------------------------ |
-| Ability to handle X different types of queries | 1%   | [All style](#1All-style); [a certain style](#2Certain-style); [popular dishes](#5popular dishes); [telphone](#8Telphone); [location](#7Location); [environment picture/video](#6Environment); [detail information of restaurants](#4Detail-information-of-restaurants); [recent coupons information](#3Recent-coupons-information); [nearby high rating restaurants](#9Nearby-high-rating-restaurants), totally 9 of them. |
+| Ability to handle X different types of queries | 1%   | [All style](#1All-style); [a certain style](#2Certain-style); [popular dishes](#5popular-dishes); [telphone](#8Telphone); [location](#7Location); [environment picture/video](#6Environment); [detail information of restaurants](#4Detail-information-of-restaurants); [recent coupons information](#3Recent-coupons-information); [nearby high rating restaurants](#9Nearby-high-rating-restaurants), totally 9 of them. |
 | Usage of redis server                          | 1%   | As we mention in [technology](#-Technology) table, we use redis to store the record of user behavior. |
 | Consumption of other service other than redis  | 2%   | We use [MongoDB, Alibaba OSS, CentOS cloud server and google maps API](#-Technology) as our other service. |
 | Compliance of other constrains                 | 1%   | As you can see, we developed this project all follow teacher's requirement. |
