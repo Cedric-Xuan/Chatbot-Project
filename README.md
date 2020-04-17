@@ -110,7 +110,7 @@ If many users send requests at the same time, the system may have the problem of
 
 
 
-##  💡 Description of different fuction
+##  💡 Description of different fuctions
 
 In this part, we will introduce the fuction of our chatbot, post all specific screenshot of demonstration, and we also welcome you to test it in our channel.
 
