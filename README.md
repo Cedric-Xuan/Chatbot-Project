@@ -7,7 +7,7 @@
   * [🍉 Demo](#-demo)
   * [🔧 Technology](#-technology)
   * [💾 Capacity of service](#-capacity-of-service)
-        * [Expand Cloud Storage:](#expand-cloud-storage-)
+        * [Expand Cloud Storage:](#-expand-cloud-storage-)
         * [Improve the processing ability of Flask](#improve-the-processing-ability-of-flask)
   * [💡 Description of different fuction](#-description-of-different-fuction)
         * [1.All style](#1all-style)
