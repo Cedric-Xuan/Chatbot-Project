@@ -173,8 +173,9 @@ Get the address of restuarant, and you can make a phone call.
 ##### 9.Nearby high rating restaurants
 
 Recommend three high rating restaurants near the query address randomly.
+You can send keyword "nearby address" or send location message directly.
 
-<img src="/img/Nearby_img.jpg" width = "280" height = "569" /><img src="/img/Nearby2_img.jpg" width = "280" height = "569" />
+<img src="/img/Nearby_img.jpg" width = "280" height = "569" /> <img src="/img/Nearby2_img.jpg" width = "280" height = "569" />
 
 
 
