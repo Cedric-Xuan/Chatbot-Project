@@ -28,7 +28,7 @@ Our group proposes a Line channel about the **Hong Kong Gourmet Circle**. User c
 
 | Item                                           | Mark | In our project                                               |
 | ---------------------------------------------- | ---- | ------------------------------------------------------------ |
-| Ability to handle X different types of queries | 1%   | [All style](#All-style); [a certain style](#Certain-style); [popular dishes](#Certain-style); [telphone](#Telphone); [location](#Location); [environment picture/video](#Environment-picture/video); [detail information of restaurants](#Detail-information-of-restaurants); [recent coupons information](#Recent-coupons-information); [nearby high rating restaurants](#Nearby-high-rating-restaurants), totally 9 of them. |
+| Ability to handle X different types of queries | 1%   | [All style](#1.All-style); [a certain style](#2.Certain-style); [popular dishes](#3.Certain-style); [telphone](#4.Telphone); [location](#5.Location); [environment picture/video](#6.Environment); [detail information of restaurants](#7.Detail-information-of-restaurants); [recent coupons information](#8.Recent-coupons-information); [nearby high rating restaurants](#9.Nearby-high-rating-restaurants), totally 9 of them. |
 | Usage of redis server                          | 1%   | As we mention in [technology](#-Technology) table, we use redis to store the record of user behavior. |
 | Consumption of other service other than redis  | 2%   | We use [MongoDB, Alibaba OSS, CentOS cloud server and google maps API](#-Technology) as our other service. |
 | Compliance of other constrains                 | 1%   | As you can see, we developed this project all follow teacher's requirement. |
@@ -96,7 +96,7 @@ If many users send requests at the same time, the system may have the problem of
 
 In this part, we will introduce the fuction of our chatbot, post all specific screenshot of demonstration, and we also welcome you to test it in our channel.
 
-##### All style
+##### 1.All style
 
 We can choose different functions via the initial menu, made by rich-menu in Line.
 
@@ -106,7 +106,7 @@ In this menu, we have four different type of dishes, Chinese food, Japeness food
 
 
 
-##### Certain style
+##### 2.Certain style
 
 When you select specific type of cuisine, for example, Western food, you will get the restuarant list.
 
@@ -114,13 +114,13 @@ When you select specific type of cuisine, for example, Western food, you will ge
 
 
 
-##### Recent coupons information
+##### 3.Recent coupons information
 
 If you choose "Gain western coupons", then you can get some coupons of different restuarants.
 
 <img src="/img/Conpon_img.jpg" width = "280" height = "569" />
 
-##### Detail information of restaurants
+##### 4.Detail information of restaurants
 
 If you choose specific restuarant, for example, "登堂", then you can continue select popular dishes, environment, location and call restuarant.
 
@@ -128,33 +128,33 @@ If you choose specific restuarant, for example, "登堂", then you can continue 
 
 
 
-##### popular dishes
+##### 5.popular dishes
 
 Get popular dishes of the restuarant(Show in the bottom of interface).
 
 <img src="/img/popular_dishes_img.jpg" width = "280" height = "569" />
 
-##### Environment picture/video
+##### 6.Environment
 
 Get the picture/video of restuarant.
 
 <img src="/img/Environment_img.jpg" width = "280" height = "569" />
 
-##### Location
+##### 7.Location
 
 Get the address of restuarant.
 
 <img src="/img/Location_img.jpg" width = "280" height = "569" />
 
-##### Telphone
+##### 8.Telphone
 
 Get the address of restuarant, and you can make a phone call.
 
 <img src="/img/Phone_img.jpg" width = "280" height = "569" />
 
-##### Nearby high rating restaurants
+##### 9.Nearby high rating restaurants
 
-
+Recommend three high rating restaurants near the query address randomly.
 
 <img src="/img/Conpon_img.jpg" width = "280" height = "569" />
 
