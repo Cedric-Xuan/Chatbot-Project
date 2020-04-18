@@ -54,7 +54,7 @@ STYLE_THAI = 2005
 STYLE_WESTERN = 4000
 
 # Google map API key
-GOOGLE_API_KEY = 'AIzaSyAH5qFJ9JfgCdblC-6Y282wFMxCXA6TeHM'  # due to confidentiality, it will not be published on GitHub
+GOOGLE_API_KEY = ''  # due to confidentiality, it will not be published on GitHub
 
 # redis parameters
 HOST = "redis-16611.c1.us-central1-2.gce.cloud.redislabs.com"
@@ -160,7 +160,7 @@ def handle_TextMessage(event):
     elif label == _STYLE:
         msg = 'Sorry, Not Found.'
         style_name = extract_style_data(text)
-        query = {'style': style_name}
+        query = {"style": {'$regex': style_name, '$options': 'i'}}
         print('query:' + str(query))
         result_json = post.find(query)
 
@@ -173,7 +173,7 @@ def handle_TextMessage(event):
             #     result += restaurant['restaurant'] + '\tTel:' + restaurant['tel'] + '\n' + 'Address:' + restaurant[
             #         'address'] + '\n\n'
 
-            send_restaurant_list_button_message(event, style_name, result_json)
+            send_restaurant_list_button_message(event, result_json[0]['style'], result_json)
 
             user = Json.loads(str(event.source))
             uid = user['userId']
@@ -186,14 +186,14 @@ def handle_TextMessage(event):
     elif label == _STYLE_IN_LIST:
         msg = 'Sorry, Not Found.'
         style_name = extract_style_in_list_data(text)
-        query = {'style': style_name}
+        query = {"style": {'$regex': style_name, '$options': 'i'}}
         print('query:' + str(query))
         result_json = post.find(query)
 
         if result_json is not None:
             # result_json = json.loads(result_json_str)
 
-            result = 'Style:' + style_name + '\n\n'
+            result = 'Style:' + result_json[0]['style'] + '\n\n'
 
             for restaurant in result_json:
                 result += restaurant['restaurant'] + '\tTel:' + restaurant['tel'] + '\n' + 'Address:' + restaurant[
@@ -215,7 +215,7 @@ def handle_TextMessage(event):
         latitude = ''
         longitude = ''
         title = ''
-        query = {'restaurant': extract_restaurant_data(text)}
+        query = {"restaurant": {'$regex': extract_restaurant_data(text), '$options': 'i'}}
         print('query:' + str(query))
         result_json = post.find_one(query)
 
@@ -251,7 +251,7 @@ def handle_TextMessage(event):
 
     elif label == _POPULAR:
         title = ''
-        query = {'restaurant': extract_popular_dishes_data(text)}
+        query = {"restaurant": {'$regex': extract_popular_dishes_data(text), '$options': 'i'}}
         print('query:' + str(query))
         result_json = post.find_one(query)
         if result_json is not None:
@@ -280,7 +280,7 @@ def handle_TextMessage(event):
         dish_name = ''
         price = ''
         restaurant, food = extract_restaurant_food_data(text)
-        query = {'restaurant': restaurant}
+        query = {"restaurant": {'$regex': restaurant, '$options': 'i'}}
         print('query:' + str(query))
         json = post.find_one(query)
         if json is not None:
@@ -288,7 +288,7 @@ def handle_TextMessage(event):
             popular_menu_list = json['popular_menu']
             if len(popular_menu_list) > 0:
                 for dish in popular_menu_list:
-                    if dish['dish'] == food:
+                    if dish['dish'].lower() == food:
                         print('Found dish:' + dish['dish'])
                         img_url = dish['img_url']
                         dish_name = dish['dish']
@@ -317,7 +317,7 @@ def handle_TextMessage(event):
         video_url = ''
         video_img = ''
         restaurant = extract_restaurant_environment(text)
-        query = {'restaurant': restaurant}
+        query = {"restaurant": {'$regex': restaurant, '$options': 'i'}}
         print('query:' + str(query))
         json = post.find_one(query)
         if json is not None:
@@ -353,7 +353,7 @@ def handle_TextMessage(event):
     elif label == _LOCATION:
 
         restaurant = extract_location_data(text)
-        query = {'restaurant': restaurant}
+        query = {"restaurant": {'$regex': restaurant, '$options': 'i'}}
         print('query:' + str(query))
         json = post.find_one(query)
 
